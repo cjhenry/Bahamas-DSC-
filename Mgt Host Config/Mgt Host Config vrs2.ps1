@@ -12,7 +12,7 @@
 # 8. (Check Server GUI is Off) pending testing
 #
 # Help Site - 
-# Notes - Saved to Git
+# Notes - 
 ##########################################################################################################
 
 # Start ConfigData
@@ -35,7 +35,7 @@ $ConfigData = @{
 
 # Check computer that are in the table
 #$computers
-#$ConfigData.AllNodes
+$ConfigData.AllNodes
 
 
 # Start Configuration File
@@ -49,24 +49,26 @@ Configuration MgtHostConfig {
 
 #region DSC Resources 
     # Import DSC Resource required  
-    Import-DscResource –ModuleName PSDesiredStateConfiguration
-    Import-DscResource –ModuleName xPSDesiredStateConfiguration
-    Import-DscResource -ModuleName xSMBShare
-    Import-DscResource -ModuleName xActiveDirectory
-    Import-DscResource -ModuleName xNetworking
-    Import-DscResource -ModuleName xComputerManagement
-    Import-DscResource -ModuleName xPendingReboot
-    Import-DscResource -ModuleName xSystemSecurity
-    Import-DscResource -ModuleName xRemoteDesktopAdmin
-    Import-DscResource -ModuleName xWinEventLog
-    Import-DSCResource -ModuleName xTimeZone
-    Import-DscResource -modulename cISCSI
-    Import-DscResource -Module SYSTEMHOSTING
-    Import-DscResource -ModuleName xStorage
+    Import-DscResource –ModuleName PSDesiredStateConfiguration 
+    Import-DscResource –ModuleName xPSDesiredStateConfiguration -ModuleVersion 3.10.0.0
+    Import-DscResource -ModuleName xSMBShare -ModuleVersion 1.1.0.0
+    Import-DscResource -ModuleName xActiveDirectory -ModuleVersion 2.11.0.0
+    Import-DscResource -ModuleName xNetworking -ModuleVersion 2.9.0.0
+    Import-DscResource -ModuleName xComputerManagement -ModuleVersion 1.6.0.0
+    Import-DscResource -ModuleName xPendingReboot -ModuleVersion 0.3.0.0
+    Import-DscResource -ModuleName xSystemSecurity -ModuleVersion 1.1.0.0
+    Import-DscResource -ModuleName xRemoteDesktopAdmin -ModuleVersion 1.1.0.0
+    Import-DscResource -ModuleName xWinEventLog -ModuleVersion 1.1.0.0
+    Import-DSCResource -ModuleName xTimeZone -ModuleVersion 1.4.0.0
+    Import-DscResource -modulename cISCSI -ModuleVersion 1.2.1.95
+    Import-DscResource -Module SYSTEMHOSTING -ModuleVersion 1.7.0
+    Import-DscResource -ModuleName xStorage -ModuleVersion 2.6.0.0
     Import-DSCResource -ModuleName xDSCFirewall -ModuleVersion 1.0
+
+
     
    
-    #Install-Module -Name xNetworking
+     #Install-Module -Name xActiveDirectory
   
 
 #endregion  DSC Resource
@@ -115,6 +117,7 @@ Node $AllNodes.NodeGuid {
 
         xTimeZone ServerTime {
             TimeZone = "Atlantic Standard Time"
+            IsSingleInstance = 'Yes'
         }
 
         xRemoteDesktopAdmin RemoteDesktopSettings {
@@ -133,7 +136,7 @@ Node $AllNodes.NodeGuid {
             RetryInterval = 1
             UseCustomPathRecovery = 'Disabled'
             CustomPathRecovery = 40
-            DiskTimeoutValue = 60
+            
         }   # MPIO
    
  
@@ -233,8 +236,6 @@ Node $AllNodes.where{$_.NodeName -eq “BS-MGT-HVH2”}.NodeGuid {
    
     
 
-
-
 } # End Config
 
 
@@ -251,6 +252,12 @@ New-DSCCheckSum -ConfigurationPath "$Env:Temp\Scripts\DSC Host Server Config" -O
 # Copy the files to the correct location on the Pull Server
 write-host "Copying configurations to pull service configuration store..."
 $SourceFiles = "$Env:Temp\Scripts\DSC Host Server Config\*.mof*"
-$TargetFiles = "$env:SystemDrive\Program Files\WindowsPowershell\DscService\Configuration"
+$TargetFiles = "\\mgt-dsc1\c$\Program Files\WindowsPowerShell\DscService\Configuration"
+
 Move-Item $SourceFiles $TargetFiles -Force
 Remove-Item "$Env:Temp\Scripts\DSC Host Server Config"
+
+
+## Configure the Local LCM for Pull and to use the GUID
+
+
